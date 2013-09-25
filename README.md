@@ -1,2 +1,2 @@
-gignal-api
-==========
+# Gignal API in Node.js
+
