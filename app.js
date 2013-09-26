@@ -66,7 +66,7 @@ app.get('/fetch/:id', function (req, res) {
 
     });
 
-    console.log(query.sql);
+    //console.log(query.sql);
 
   });
 
