@@ -19,6 +19,26 @@ app.get('/ping', function (req, res) {
 
 app.get('/fetch/:id', function (req, res) {
 
+  var offset = req.query.offset;
+  var limit = parseInt(req.query.limit || 20);
+  var sinceTime = parseInt(req.query.sinceTime || 0);
+
+  if (limit > 100) limit = 100;
+
+  var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, created_on as creation, admin_entry, type';
+  var sql = 'SELECT ' + fields + ' FROM stream WHERE event_id = (SELECT event_id FROM events WHERE event_uuid = ?)';
+
+  if (sinceTime) {
+    if (offset) {
+      sql += ' AND created_on < FROM_UNIXTIME(' + pool.escape(sinceTime) + ')';
+    } else {
+      sql += ' AND created_on > FROM_UNIXTIME(' + pool.escape(sinceTime) + ')';
+    }
+  }
+
+  sql += ' ORDER BY created_on DESC';
+  sql += ' LIMIT ' + pool.escape(limit);
+
   pool.getConnection(function (err, connection) {
 
     if (err) {
@@ -27,24 +47,7 @@ app.get('/fetch/:id', function (req, res) {
       return false;
     }
 
-    var offset = req.query.offset;
-    var limit = parseInt(req.query.limit || 20);
-    var sinceTime = parseInt(req.query.sinceTime || 0);
-
-    if (limit > 100) limit = 100;
-
-    var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, created_on as creation, admin_entry, type';
-    var sql = 'SELECT ' + fields + ' FROM stream WHERE event_id = (SELECT event_id FROM events WHERE event_uuid = ?)';
-    if (sinceTime) {
-      if (offset) {
-        sql += ' AND created_on < FROM_UNIXTIME(' + connection.escape(sinceTime) + ')';
-      } else {
-        sql += ' AND created_on > FROM_UNIXTIME(' + connection.escape(sinceTime) + ')';
-      }
-    }
-    sql += ' ORDER BY created_on DESC';
-    sql += ' LIMIT ' + connection.escape(limit);
-    var query = connection.query(sql, [req.params.id], function (err, rows) {
+    connection.query(sql, [req.params.id], function (err, rows) {
 
       connection.release();
 
@@ -65,8 +68,6 @@ app.get('/fetch/:id', function (req, res) {
       });
 
     });
-
-    //console.log(query.sql);
 
   });
 
