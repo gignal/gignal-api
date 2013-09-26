@@ -11,13 +11,17 @@ var pool = mysql.createPool({
   charset: 'LATIN1_SWEDISH_CI'
 });
 
+app.get('/ping', function (req, res) {
+  res.send('pong');
+});
+
 app.get('/fetch/:id', function (req, res) {
 
   pool.getConnection(function (err, connection) {
 
     if (err) {
       console.error(err);
-      res.json({error: true});
+      res.json(500, {error: true});
       return false;
     }
 
@@ -44,7 +48,7 @@ app.get('/fetch/:id', function (req, res) {
 
       if (err) {
         console.error(err);
-        res.json({error: true});
+        res.json(500, {error: true});
         return false;
       }
 
