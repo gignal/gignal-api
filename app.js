@@ -28,7 +28,7 @@ app.get('/fetch/:id', function (req, res) {
     }
 
     var offset = req.query.offset;
-    var limit = parseInt(req.query.limit || 0);
+    var limit = parseInt(req.query.limit || 20);
     var sinceTime = parseInt(req.query.sinceTime || 0);
 
     if (limit > 100) limit = 100;
