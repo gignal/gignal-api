@@ -12,7 +12,7 @@ var pool = mysql.createPool({
 });
 
 app.get('/ping', function (req, res) {
-  res.send('pong');
+  res.end('pong');
 });
 
 app.get('/fetch/:id', function (req, res) {
