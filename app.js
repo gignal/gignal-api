@@ -54,11 +54,11 @@ app.get('/fetch/:id', function (req, res) {
         return false;
       }
 
-  		if (sinceTime) {
-  			res.setHeader('Cache-Control', 'max-age=10');
-  		} else {
-  			res.setHeader('Cache-Control', 'max-age=300');
-  		}
+      if (sinceTime) {
+        res.setHeader('Cache-Control', 'max-age=10');
+      } else {
+        res.setHeader('Cache-Control', 'max-age=300');
+      }
 
       res.jsonp({
         stream: rows
@@ -66,7 +66,7 @@ app.get('/fetch/:id', function (req, res) {
 
     });
 
-    //console.log(query.sql);
+    console.log(query.sql);
 
   });
 
