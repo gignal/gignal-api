@@ -1,5 +1,6 @@
 var express = require('express');
-var mysql = require('mysql');
+//var mysql = require('mysql');
+var mysql = require('mysql2');
 
 var app = express();
 
@@ -30,14 +31,14 @@ app.get('/fetch/:id', function (req, res) {
 
   if (sinceTime) {
     if (offset) {
-      sql += ' AND created_on < FROM_UNIXTIME(' + pool.escape(sinceTime) + ')';
+      sql += ' AND created_on < FROM_UNIXTIME(?)';
     } else {
-      sql += ' AND created_on > FROM_UNIXTIME(' + pool.escape(sinceTime) + ')';
+      sql += ' AND created_on > FROM_UNIXTIME(?)';
     }
   }
 
   sql += ' ORDER BY created_on DESC';
-  sql += ' LIMIT ' + pool.escape(limit);
+  sql += ' LIMIT ?';
 
   pool.getConnection(function (err, connection) {
 
@@ -47,9 +48,17 @@ app.get('/fetch/:id', function (req, res) {
       return false;
     }
 
-    connection.query(sql, [req.params.id], function (err, rows) {
+    if (sinceTime) {
+      var param = [req.params.id, connection.escape(sinceTime), connection.escape(limit)]
+    } else {
+      var param = [req.params.id, connection.escape(limit)]
+    }
 
-      connection.release();
+    //connection.query(sql, [req.params.id], function (err, rows) {
+    connection.execute(sql, param, function (err, rows) {
+
+      //connection.release();
+      connection.end();
 
       if (err) {
         console.error(err);

@@ -1,11 +1,11 @@
 {
   "name": "gignal-api",
-  "description": "",
-  "version": "0.0.1",
+  "description": "Gignal API",
+  "version": "0.0.2",
   "private": true,
   "dependencies": {
     "express": "3.x",
-    "mysql": "2.0.0-alpha9"
+    "mysql2": "0.10.x"
   },
   "scripts": {
     "start": "node app"
