@@ -31,7 +31,7 @@ app.get('/ping', function (req, res) {
   res.end('pong');
 });
 
-var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, DATE_SUB(created_on, INTERVAL 1 MONTH) as creation, admin_entry, type';
+var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, 0 as creation, admin_entry, type';
 var sql = 'SELECT ' + fields + ' FROM stream WHERE event_id = (SELECT event_id FROM events WHERE event_uuid = ?)';
 
 var uuid_re = /[a-fA-F0-9]+/
