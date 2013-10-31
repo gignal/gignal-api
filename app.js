@@ -1,68 +1,87 @@
 var express = require('express');
-//var mysql = require('mysql');
 var mysql = require('mysql2');
 
 var app = express();
-
 app.use(express.compress());
+
+// validate req.params if its a regular expression
+app.param(function (name, fn) {
+  if (fn instanceof RegExp) {
+    return function (req, res, next, val) {
+      var captures;
+      if (captures = fn.exec(String(val))) {
+        req.params[name] = captures;
+        next();
+      } else {
+        next('route');
+      }
+    }
+  }
+});
 
 var pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: 'gignal',
-  charset: 'LATIN1_SWEDISH_CI'
+  compress: true
 });
 
 app.get('/ping', function (req, res) {
   res.end('pong');
 });
 
-app.get('/fetch/:id', function (req, res) {
+var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, created_on as creation, admin_entry, type';
+var sql = 'SELECT ' + fields + ' FROM stream WHERE event_id = (SELECT event_id FROM events WHERE event_uuid = ?)';
 
-  var offset = req.query.offset;
+var uuid_re = /[a-fA-F0-9]+/
+
+app.param('uuid', uuid_re);
+
+app.get('/fetch/:uuid', function (req, res) {
+
+  var uuid = req.params.uuid;
+  var offset = parseInt(req.query.offset || false);
   var limit = parseInt(req.query.limit || 20);
-  var sinceTime = parseInt(req.query.sinceTime || 0);
+  var sinceTime = parseInt(req.query.sinceTime || false);
 
   if (limit > 100) limit = 100;
 
-  var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, created_on as creation, admin_entry, type';
-  var sql = 'SELECT ' + fields + ' FROM stream WHERE event_id = (SELECT event_id FROM events WHERE event_uuid = ?)';
+  var query = sql;
 
   if (sinceTime) {
     if (offset) {
-      sql += ' AND created_on < FROM_UNIXTIME(?)';
+      query += ' AND created_on < FROM_UNIXTIME(?)';
     } else {
-      sql += ' AND created_on > FROM_UNIXTIME(?)';
+      query += ' AND created_on > FROM_UNIXTIME(?)';
     }
   }
 
-  sql += ' ORDER BY created_on DESC';
-  sql += ' LIMIT ?';
+  query += ' ORDER BY created_on DESC';
+  query += ' LIMIT ?';
 
   pool.getConnection(function (err, connection) {
 
     if (err) {
       console.error(err);
-      res.json(500, {error: true});
+      res.json(500, {error: err});
       return false;
     }
 
     if (sinceTime) {
-      var param = [req.params.id, connection.escape(sinceTime), connection.escape(limit)]
+      var param = [uuid, connection.escape(sinceTime), connection.escape(limit)]
     } else {
-      var param = [req.params.id, connection.escape(limit)]
+      var param = [uuid, connection.escape(limit)]
     }
 
-    //connection.query(sql, [req.params.id], function (err, rows) {
-    connection.execute(sql, param, function (err, rows) {
+    connection.execute(query, param, function (err, rows) {
 
       //connection.release();
       connection.end();
 
       if (err) {
         console.error(err);
-        res.json(500, {error: true});
+        res.json(500, {error: err});
         return false;
       }
 
