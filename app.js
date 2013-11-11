@@ -1,6 +1,5 @@
 var express = require('express');
-//var mysql = require('mysql2');
-var mysql = require('mysql');
+var mysql = require('mysql2');
 
 var app = express();
 app.use(express.compress());
@@ -47,7 +46,6 @@ app.get('/fetch/:uuid', function (req, res) {
 
   if (limit > 100) limit = 100;
 
-  //var sql = 'SELECT ' + fields + ' FROM stream WHERE event_id = (SELECT event_id FROM events WHERE event_uuid = "' + uuid + '")';
   var query = sql;
 
   if (sinceTime) {
@@ -56,6 +54,12 @@ app.get('/fetch/:uuid', function (req, res) {
     } else {
       query += ' AND created_on > FROM_UNIXTIME(?)';
     }
+  }
+
+  if (sinceTime) {
+    var param = [uuid, sinceTime, limit]
+  } else {
+    var param = [uuid, limit]
   }
 
   query += ' ORDER BY created_on DESC';
@@ -70,14 +74,7 @@ app.get('/fetch/:uuid', function (req, res) {
       return false;
     }
 
-    if (sinceTime) {
-      var param = [uuid, sinceTime, limit]
-    } else {
-      var param = [uuid, limit]
-    }
-
-    //connection.execute(query, param, function (err, rows) {
-    connection.query(query, param, function (err, rows) {
+    connection.execute(query, param, function (err, rows) {
 
       connection.end();
 
