@@ -31,11 +31,10 @@ app.get('/ping', function (req, res) {
   res.end('pong');
 });
 
-var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, 0 as creation, admin_entry, type';
+var fields = 'stream_id, original_id, service, username, user_id, name, user_image, text, thumb_photo, large_photo, UNIX_TIMESTAMP(created_on) AS created_on, UNIX_TIMESTAMP(saved_on) AS saved_on, admin_entry, type, created_on AS created';
 var sql = 'SELECT ' + fields + ' FROM stream WHERE event_id = (SELECT event_id FROM events WHERE event_uuid = ?)';
 
 var uuid_re = /[a-fA-F0-9]+/
-
 app.param('uuid', uuid_re);
 
 app.get('/fetch/:uuid', function (req, res) {
@@ -63,8 +62,9 @@ app.get('/fetch/:uuid', function (req, res) {
   pool.getConnection(function (err, connection) {
 
     if (err) {
-      console.error(err);
       res.json(500, {error: err});
+      //throw err;
+      console.error(err);
       return false;
     }
 
@@ -76,7 +76,6 @@ app.get('/fetch/:uuid', function (req, res) {
 
     connection.execute(query, param, function (err, rows) {
 
-      //connection.release();
       connection.end();
 
       if (err) {
