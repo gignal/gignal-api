@@ -56,6 +56,12 @@ app.get('/fetch/:uuid', function (req, res) {
     }
   }
 
+  if (sinceTime) {
+    var param = [uuid, sinceTime, limit]
+  } else {
+    var param = [uuid, limit]
+  }
+
   query += ' ORDER BY created_on DESC';
   query += ' LIMIT ?';
 
@@ -66,12 +72,6 @@ app.get('/fetch/:uuid', function (req, res) {
       //throw err;
       console.error(err);
       return false;
-    }
-
-    if (sinceTime) {
-      var param = [uuid, connection.escape(sinceTime), connection.escape(limit)]
-    } else {
-      var param = [uuid, connection.escape(limit)]
     }
 
     connection.execute(query, param, function (err, rows) {
