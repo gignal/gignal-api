@@ -1,6 +1,6 @@
 var express = require('express');
-var mysql = require('mysql2');
-//var mysql = require('mysql');
+//var mysql = require('mysql2');
+var mysql = require('mysql');
 
 var app = express();
 app.use(express.compress());
@@ -75,10 +75,11 @@ app.get('/fetch/:uuid', function (req, res) {
       return false;
     }
 
-    connection.execute(query, param, function (err, rows) {
-    //connection.query(query, param, function (err, rows) {
+    //connection.execute(query, param, function (err, rows) {
+    connection.query(query, param, function (err, rows) {
 
-      connection.end();
+      //connection.end();
+      connection.release();
 
       if (err) {
         console.error(err);
