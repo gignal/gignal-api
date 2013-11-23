@@ -5,7 +5,8 @@
   "private": true,
   "dependencies": {
     "express": "3.x",
-    "mysql2": "0.10.x"
+    "mysql2": "0.10.x",
+    "mysql": "~2.0.0-alpha9"
   },
   "scripts": {
     "start": "node app"
